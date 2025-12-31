@@ -109,18 +109,8 @@ const App: React.FC = () => {
     }
   }, [orderToPrint]);
 
-  const getPageTitle = () => {
-    switch(activeTab) {
-      case 'dashboard': return 'Tổng Quan Hệ Thống';
-      case 'orders': return 'Quản Lý Đơn Hàng';
-      case 'inventory': return 'Tồn Kho & XNT';
-      case 'customers': return 'Khách Hàng Thân Thiết';
-      default: return 'Bảng Điều Khiển';
-    }
-  };
-
   return (
-    <div className="min-h-screen flex bg-[#f8fafc] relative text-slate-900 overflow-x-hidden">
+    <div className="min-h-screen flex bg-slate-50 relative text-slate-900">
       <Sidebar 
         activeTab={activeTab} 
         setActiveTab={(tab) => { setActiveTab(tab); setIsSidebarOpen(false); }} 
@@ -129,31 +119,22 @@ const App: React.FC = () => {
         newOrdersCount={newOrdersCount}
       />
 
-      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'blur-sm sm:blur-none opacity-50' : ''} lg:ml-60 p-4 md:p-6 min-h-screen max-w-7xl mx-auto w-full`}>
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b border-slate-100 pb-4">
+      <main className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'blur-sm sm:blur-none' : ''} lg:ml-64 p-4 md:p-8 min-h-screen`}>
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 md:mb-10 gap-4">
           <div className="flex items-center gap-3">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="lg:hidden p-2 bg-white rounded-xl border border-slate-200 text-slate-500 hover:text-indigo-600 transition-colors">
-              <span className="text-xl">☰</span>
-            </button>
-            <div>
-              <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight leading-none">
-                  {getPageTitle()}
-              </h1>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Hôm nay, {new Date().toLocaleDateString('vi-VN')}</p>
-            </div>
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="lg:hidden p-2 bg-white rounded-lg border border-slate-200 shadow-sm text-slate-600 text-xl">☰</button>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+                {activeTab === 'dashboard' ? 'Tổng Quan' : activeTab === 'orders' ? 'Đơn Hàng' : activeTab === 'inventory' ? 'Kho Hàng' : 'Thành Viên'}
+            </h1>
           </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <button onClick={() => setIsScanning(true)} className="flex-1 sm:flex-none px-4 py-2 bg-white text-slate-900 border border-slate-200 rounded-xl font-black text-[11px] uppercase tracking-wider shadow-sm hover:border-indigo-600 transition-all flex items-center justify-center gap-2 active:scale-95">
-                <span className="text-sm">📷</span> Quét QR
+          <div className="flex items-center gap-2">
+            <button onClick={() => setIsScanning(true)} className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-black text-xs shadow-lg shadow-indigo-200 flex items-center gap-2 active:scale-95 transition-all">
+                <span>📷</span> Quét QR
             </button>
-            <div className="hidden sm:flex items-center gap-2 p-1 bg-white border border-slate-200 rounded-xl shadow-sm">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse ml-2"></div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-2">Hệ thống: Live</span>
-            </div>
           </div>
         </header>
 
-        <div className="relative">
+        <div className="animate-in fade-in duration-500">
           {activeTab === 'dashboard' && <DashboardHome orders={orders} />}
           {activeTab === 'orders' && (
             <OrderTable 

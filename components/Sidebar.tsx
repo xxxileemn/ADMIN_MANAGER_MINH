@@ -13,7 +13,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
   const menuItems = [
     { id: 'dashboard', label: 'Tổng quan', icon: '📊' },
     { id: 'orders', label: 'Đơn hàng', icon: '🛍️', badge: newOrdersCount },
-    { id: 'inventory', label: 'Kho hàng', icon: '🏬' },
+    { id: 'inventory', label: 'Kho Hàng', icon: '🏬' },
     { id: 'products', label: 'Sản phẩm', icon: '👕' },
     { id: 'customers', label: 'Khách hàng', icon: '👥' },
     { id: 'settings', label: 'Cài đặt', icon: '⚙️' },
@@ -21,61 +21,60 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isOpen, onCl
 
   return (
     <>
+      {/* Mobile Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden transition-opacity"
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden"
           onClick={onClose}
         />
       )}
 
       <div className={`
-        fixed left-0 top-0 h-screen bg-white border-r border-slate-100 flex flex-col z-50 transition-transform duration-300 w-60
+        fixed left-0 top-0 h-screen bg-slate-900 text-white flex flex-col z-50 transition-transform duration-300 w-64
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <div className="p-5 flex justify-between items-center border-b border-slate-50">
+        <div className="p-6 flex justify-between items-center">
           <div>
-            <h1 className="text-xl font-black tracking-tighter text-indigo-600">FASHION<span className="text-slate-900">PRO</span></h1>
-            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Management System</p>
+            <h1 className="text-2xl font-bold tracking-tight text-indigo-400">FashionAdmin</h1>
+            <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Management Pro</p>
           </div>
-          <button onClick={onClose} className="lg:hidden p-2 text-slate-400 hover:text-indigo-600 transition-colors">
+          <button onClick={onClose} className="lg:hidden p-2 text-slate-400 hover:text-white">
             <span className="text-xl">✕</span>
           </button>
         </div>
         
-        <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-4 py-4 space-y-1">
           {menuItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all group ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
                 activeTab === item.id 
-                  ? 'bg-indigo-50 text-indigo-700 shadow-sm' 
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/20' 
+                  : 'text-slate-400 hover:bg-slate-800 hover:text-white'
               }`}
             >
               <div className="flex items-center space-x-3">
-                <span className={`text-lg transition-transform group-hover:scale-110 ${activeTab === item.id ? 'grayscale-0' : 'grayscale opacity-70'}`}>
-                  {item.icon}
-                </span>
-                <span className="font-bold text-[13px]">{item.label}</span>
+                <span className="text-xl">{item.icon}</span>
+                <span className="font-semibold text-sm">{item.label}</span>
               </div>
               {item.badge && item.badge > 0 && (
-                <span className={`flex items-center text-[10px] font-black px-1.5 py-0.5 rounded-lg ${
-                  activeTab === item.id ? 'bg-indigo-600 text-white' : 'bg-rose-500 text-white'
+                <span className={`flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-full animate-pulse ${
+                  activeTab === item.id ? 'bg-white text-indigo-600' : 'bg-rose-500 text-white'
                 }`}>
-                  {item.badge}
+                  {item.badge} <span className="opacity-80">MỚI</span>
                 </span>
               )}
             </button>
           ))}
         </nav>
         
-        <div className="p-4 border-t border-slate-50">
-          <div className="flex items-center space-x-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group border border-transparent hover:border-slate-100">
-            <div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-black text-xs shadow-md">AD</div>
-            <div className="min-w-0">
-              <p className="text-[12px] font-black text-slate-900 truncate">Quản trị viên</p>
-              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Cửa hàng trưởng</p>
+        <div className="p-6 border-t border-slate-800">
+          <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer group">
+            <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center font-bold shadow-inner group-hover:scale-105 transition-transform">AD</div>
+            <div>
+              <p className="text-sm font-bold">Admin User</p>
+              <p className="text-[10px] text-slate-400 uppercase">Manager</p>
             </div>
           </div>
         </div>
