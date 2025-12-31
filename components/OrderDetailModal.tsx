@@ -13,151 +13,143 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onUpdateStat
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>(order.status);
   const [reason, setReason] = useState(order.returnReason || '');
   const [showReasonInput, setShowReasonInput] = useState(order.status === OrderStatus.EXCHANGE_RETURN);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    setIsVisible(true);
     setSelectedStatus(order.status);
     setReason(order.returnReason || '');
     setShowReasonInput(order.status === OrderStatus.EXCHANGE_RETURN);
   }, [order]);
 
+  const handleClose = () => {
+    setIsVisible(false);
+    setTimeout(onClose, 300);
+  };
+
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${order.id}&color=4f46e5`;
 
   const getStatusStyle = (status: OrderStatus) => {
     switch (status) {
-      case OrderStatus.PENDING: return 'bg-amber-50 text-amber-700 border-amber-200';
-      case OrderStatus.PROCESSING: return 'bg-blue-50 text-blue-700 border-blue-200';
-      case OrderStatus.SHIPPED: return 'bg-sky-50 text-sky-700 border-sky-200';
-      case OrderStatus.DELIVERED: return 'bg-green-50 text-green-700 border-green-200';
-      case OrderStatus.EXCHANGE_RETURN: return 'bg-rose-50 text-rose-700 border-rose-200';
-      default: return 'bg-slate-50 text-slate-700 border-slate-200';
+      case OrderStatus.PENDING: return 'bg-amber-100 text-amber-700 border-amber-200';
+      case OrderStatus.PROCESSING: return 'bg-blue-100 text-blue-700 border-blue-200';
+      case OrderStatus.SHIPPED: return 'bg-sky-100 text-sky-700 border-sky-200';
+      case OrderStatus.DELIVERED: return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case OrderStatus.EXCHANGE_RETURN: return 'bg-rose-100 text-rose-700 border-rose-200';
+      default: return 'bg-slate-100 text-slate-700 border-slate-200';
     }
-  };
-
-  const handleConfirmUpdate = () => {
-    onUpdateStatus(order.id, selectedStatus, reason);
   };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
-  const calculatedSubtotal = useMemo(() => {
-    return order.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  }, [order.items]);
-
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-md">
-      <div className="bg-white w-full max-w-4xl h-[90vh] sm:h-auto sm:max-h-[90vh] rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="px-6 md:px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
-          <div className="flex items-center gap-4">
-             <div className="p-1 bg-white border rounded shadow-sm hidden sm:block">
-                <img src={qrCodeUrl} alt="QR" className="w-10 h-10" />
+    <div 
+      className={`fixed inset-0 z-[100] flex items-stretch sm:items-center justify-center sm:justify-end p-0 sm:p-4 bg-slate-900/60 backdrop-blur-xl transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+      onClick={handleClose}
+    >
+      <div 
+        className={`bg-white w-full max-w-2xl h-full sm:h-[95vh] rounded-t-[3rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${isVisible ? 'translate-x-0' : 'translate-x-full'}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header - Sticky */}
+        <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-20">
+          <div className="flex items-center gap-5">
+             <div className="p-2 bg-indigo-50 rounded-2xl hidden sm:block">
+                <img src={qrCodeUrl} alt="QR" className="w-12 h-12" />
              </div>
              <div>
-                <div className="flex items-center gap-2">
-                    <h3 className="text-lg md:text-xl font-black text-slate-900">Đơn hàng {order.id}</h3>
-                    <span className={`px-2 py-0.5 rounded text-[9px] font-black border uppercase tracking-widest ${getStatusStyle(order.status)}`}>{order.status}</span>
+                <div className="flex items-center gap-3">
+                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">#{order.id}</h3>
+                    <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black border uppercase tracking-widest ${getStatusStyle(order.status)}`}>{order.status}</span>
                 </div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Đơn hàng mới tạo</p>
              </div>
           </div>
-          <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 text-xl">✕</button>
+          <button onClick={handleClose} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition-all text-2xl">✕</button>
         </div>
 
-        <div className="flex-1 px-6 md:px-8 py-6 overflow-y-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-              <div className="space-y-1">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 mb-2">Khách hàng</h4>
-                <p className="font-black text-slate-900">{order.customerName}</p>
-                <p className="text-indigo-600 font-bold">{order.phone}</p>
-                <p className="text-slate-500 text-xs">{order.email}</p>
-              </div>
-              <div className="space-y-1">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 mb-2">Giao đến</h4>
-                <p className="text-slate-600 italic leading-relaxed">{order.address}</p>
-              </div>
+        {/* Content - Scrollable */}
+        <div className="flex-1 px-8 py-8 overflow-y-auto space-y-8 scrollbar-hide">
+          {/* Customer & Shipping Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Thông tin khách hàng</h4>
+              <p className="text-lg font-black text-slate-900">{order.customerName}</p>
+              <p className="text-indigo-600 font-bold text-sm mt-1">{order.phone}</p>
+              <p className="text-slate-500 text-xs mt-0.5">{order.email}</p>
             </div>
-
-            {/* Ghi chú khách hàng - ĐÃ KHÔI PHỤC VÀ LÀM NỔI BẬT */}
-            {order.note && (
-              <div className="p-4 bg-amber-50 border-l-4 border-amber-400 rounded-r-2xl flex gap-3 items-start animate-in slide-in-from-top-1 shadow-sm">
-                <span className="text-xl">💬</span>
-                <div>
-                  <h4 className="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-1">Ghi chú từ khách hàng</h4>
-                  <p className="text-sm text-slate-700 italic font-bold">"{order.note}"</p>
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1">Sản phẩm</h4>
-              <div className="space-y-3">
-                {order.items.map((item) => (
-                  <div key={item.id} className="flex items-center gap-4 p-3 rounded-2xl border border-slate-50 hover:bg-slate-50 transition-colors">
-                    <img src={item.image} alt={item.name} className="w-14 h-14 rounded-xl object-cover shadow-sm border" />
-                    <div className="flex-1">
-                      <p className="font-bold text-slate-900 text-sm">{item.name}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 uppercase tracking-tight">
-                          Mã SP: {item.id}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-tighter">
-                          {item.color} • Size {item.size}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-black text-indigo-600">{formatCurrency(item.price)}</p>
-                      <p className="text-[10px] text-slate-400 font-bold">x{item.quantity}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Thanh toán Summary - ĐÃ BỎ Ô MÀU ĐEN, DÙNG TÔNG SÁNG SANG TRỌNG */}
-            <div className="p-6 bg-white rounded-3xl border-2 border-indigo-50 space-y-4 shadow-[0_10px_30px_-10px_rgba(79,70,229,0.1)]">
-                <div className="flex justify-between items-center text-sm text-slate-500 font-bold">
-                   <span className="uppercase tracking-widest text-[10px]">Tạm tính hàng hóa:</span>
-                   <span className="text-slate-800">{formatCurrency(calculatedSubtotal)}</span>
-                </div>
-                
-                {order.discountCode && (
-                  <div className="flex justify-between items-center animate-in slide-in-from-left-2 p-3 bg-indigo-50/30 rounded-2xl border border-indigo-100/50">
-                    <div className="flex items-center gap-2">
-                       <span className="text-lg">🎟️</span>
-                       <div>
-                          <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none">Voucher áp dụng</p>
-                          <p className="text-sm font-black text-indigo-700">{order.discountCode}</p>
-                       </div>
-                    </div>
-                    <div className="text-right">
-                       <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest leading-none">Số tiền giảm</p>
-                       <p className="text-sm font-black text-rose-600">-{formatCurrency(order.discount || 0)}</p>
-                    </div>
-                  </div>
-                )}
-
-                {!order.discountCode && order.discount && order.discount > 0 ? (
-                  <div className="flex justify-between items-center text-sm text-rose-600 border-t border-indigo-50 pt-3">
-                     <span className="font-black uppercase tracking-widest text-[10px]">Chiết khấu trực tiếp:</span>
-                     <span className="font-black">-{formatCurrency(order.discount)}</span>
-                  </div>
-                ) : null}
-
-                <div className="pt-4 border-t border-indigo-100 flex justify-between items-center">
-                   <div>
-                      <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block leading-none mb-1">Thực thu thanh toán</span>
-                      <span className="text-[10px] text-slate-400 font-bold italic">Giá đã bao gồm VAT và Khuyến mãi</span>
-                   </div>
-                   <span className="text-3xl font-black text-indigo-600 drop-shadow-sm">{formatCurrency(order.totalAmount)}</span>
-                </div>
+            <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Địa chỉ giao hàng</h4>
+              <p className="text-slate-700 text-sm italic leading-relaxed">{order.address}</p>
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 shadow-sm">
-              <h4 className="text-[10px] font-black text-indigo-700 uppercase tracking-widest mb-3">Cập nhật trạng thái</h4>
+          {/* Customer Note */}
+          {order.note && (
+            <div className="p-6 bg-amber-50/50 border-2 border-amber-100 border-dashed rounded-[2rem] flex gap-4 items-start">
+              <span className="text-2xl">💬</span>
+              <div>
+                <h4 className="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-1">Yêu cầu từ khách</h4>
+                <p className="text-sm text-slate-800 font-bold italic leading-relaxed">"{order.note}"</p>
+              </div>
+            </div>
+          )}
+
+          {/* Products List */}
+          <div className="space-y-4">
+            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Sản phẩm trong đơn</h4>
+            <div className="space-y-3">
+              {order.items.map((item) => (
+                <div key={item.id} className="flex items-center gap-5 p-4 rounded-3xl border border-slate-100 hover:bg-slate-50 transition-all group">
+                  <div className="relative shrink-0">
+                    <img src={item.image} alt={item.name} className="w-20 h-20 rounded-2xl object-cover shadow-sm group-hover:scale-105 transition-transform" />
+                    <span className="absolute -top-2 -right-2 w-7 h-7 bg-indigo-600 text-white flex items-center justify-center rounded-full text-xs font-black shadow-lg">x{item.quantity}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-slate-900 text-base mb-1 truncate">{item.name}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg border border-indigo-100 uppercase">{item.size}</span>
+                      <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{item.color}</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-base font-black text-slate-900">{formatCurrency(item.price)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Payment Summary */}
+          <div className="p-8 bg-indigo-600 text-white rounded-[2.5rem] shadow-2xl shadow-indigo-200 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-700"></div>
+            <div className="relative z-10 space-y-4">
+              <div className="flex justify-between items-center text-sm opacity-80 font-bold">
+                 <span className="uppercase tracking-widest text-[10px]">Tiền hàng:</span>
+                 <span>{formatCurrency(order.totalAmount + (order.discount || 0))}</span>
+              </div>
+              {order.discountCode && (
+                <div className="flex justify-between items-center p-3 bg-white/10 rounded-2xl border border-white/20">
+                  <span className="text-[10px] font-black uppercase tracking-widest">🎟️ {order.discountCode}</span>
+                  <span className="font-black">-{formatCurrency(order.discount || 0)}</span>
+                </div>
+              )}
+              <div className="pt-4 border-t border-white/20 flex justify-between items-end">
+                 <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-60 leading-none mb-2">Thực thu thanh toán</p>
+                    <p className="text-sm font-bold opacity-80 italic">Đã bao gồm VAT</p>
+                 </div>
+                 <span className="text-4xl font-black">{formatCurrency(order.totalAmount)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Area */}
+          <div className="pt-4 space-y-6">
+            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Xử lý đơn hàng</h4>
+            <div className="grid grid-cols-1 gap-4">
               <select 
                 value={selectedStatus}
                 onChange={(e) => {
@@ -165,7 +157,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onUpdateStat
                     setSelectedStatus(status);
                     setShowReasonInput(status === OrderStatus.EXCHANGE_RETURN);
                 }}
-                className="w-full px-4 py-2 bg-white border border-indigo-200 rounded-xl text-xs font-bold mb-4 outline-none shadow-sm focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[1.5rem] text-sm font-black outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all appearance-none"
               >
                 {Object.values(OrderStatus).map(status => <option key={status} value={status}>{status}</option>)}
               </select>
@@ -174,41 +166,49 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onUpdateStat
                 <textarea 
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="Lý do đổi trả hoặc ghi chú xử lý..."
-                  className="w-full p-3 bg-white border border-rose-200 rounded-xl text-xs min-h-[80px] mb-4 outline-none"
+                  placeholder="Ghi chú lý do..."
+                  className="w-full p-6 bg-slate-50 border border-rose-100 rounded-[1.5rem] text-sm font-medium min-h-[100px] outline-none animate-in zoom-in duration-300"
                 />
               )}
 
-              <button 
-                onClick={handleConfirmUpdate}
-                className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-black shadow-lg shadow-indigo-200 active:scale-95 transition-all mb-3 hover:bg-indigo-700"
-              >
-                Cập nhật ngay
-              </button>
-              <button onClick={() => onPrint(order)} className="w-full py-2 bg-white text-indigo-600 border border-indigo-200 rounded-xl text-xs font-bold active:scale-95 hover:bg-indigo-50">In hóa đơn</button>
-            </div>
-
-            <div className="space-y-4 pb-10 sm:pb-0">
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1">Lịch sử xử lý</h4>
-              <div className="space-y-5">
-                {order.statusHistory?.slice().reverse().map((log, index) => (
-                  <div key={index} className="flex gap-3 relative">
-                    <div className="w-2 h-2 rounded-full bg-indigo-400 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
-                    <div className="text-xs flex-1">
-                      <div className="flex justify-between items-start">
-                        <p className="font-black text-slate-700 uppercase tracking-tight">{log.status}</p>
-                        <span className="text-[9px] text-slate-400 font-bold">{log.updatedBy}</span>
-                      </div>
-                      <p className="text-[10px] text-slate-400 mb-1">{new Date(log.updatedAt).toLocaleString('vi-VN')}</p>
-                      {log.note && (
-                        <div className="mt-2 p-3 bg-indigo-50/50 border-l-4 border-indigo-400 rounded-r-xl shadow-sm animate-in slide-in-from-left-1">
-                          <p className="text-[12px] text-slate-900 font-bold leading-relaxed">{log.note}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
+              <div className="flex gap-3">
+                 <button 
+                  onClick={() => onUpdateStatus(order.id, selectedStatus, reason)}
+                  className="flex-[2] py-4.5 bg-indigo-600 text-white rounded-[1.5rem] text-sm font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 active:scale-95 transition-all uppercase tracking-widest"
+                >
+                  Xác nhận lưu
+                </button>
+                <button 
+                  onClick={() => onPrint(order)}
+                  className="flex-1 py-4.5 bg-slate-900 text-white rounded-[1.5rem] text-sm font-black hover:bg-slate-800 transition-all uppercase tracking-widest"
+                >
+                  In
+                </button>
               </div>
+            </div>
+          </div>
+
+          {/* Status Timeline */}
+          <div className="space-y-6 pb-20">
+            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Lịch sử vết đơn</h4>
+            <div className="space-y-6 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
+              {order.statusHistory?.slice().reverse().map((log, index) => (
+                <div key={index} className="flex gap-6 relative z-10">
+                  <div className={`w-6 h-6 rounded-full mt-1 shrink-0 shadow-lg ${index === 0 ? 'bg-indigo-600 scale-125 border-4 border-white' : 'bg-slate-300 border-2 border-white'}`}></div>
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center mb-1">
+                      <p className={`text-sm font-black ${index === 0 ? 'text-indigo-600' : 'text-slate-600'}`}>{log.status}</p>
+                      <span className="text-[10px] text-slate-400 font-bold">{new Date(log.updatedAt).toLocaleTimeString('vi-VN')}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 font-medium mb-2">{new Date(log.updatedAt).toLocaleDateString('vi-VN')} • Xử lý bởi: {log.updatedBy}</p>
+                    {log.note && (
+                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 shadow-sm animate-in slide-in-from-left-2">
+                        <p className="text-xs text-slate-800 font-bold italic leading-relaxed">"{log.note}"</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
