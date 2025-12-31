@@ -41,6 +41,9 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onUpdateStat
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
+  // Tính giá tạm tính trước giảm giá
+  const subtotal = order.totalAmount + (order.discount || 0);
+
   return (
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-md">
       <div className="bg-white w-full max-w-4xl h-[90vh] sm:h-auto sm:max-h-[90vh] rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
@@ -66,12 +69,24 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onUpdateStat
                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 mb-2">Khách hàng</h4>
                 <p className="font-black text-slate-900">{order.customerName}</p>
                 <p className="text-indigo-600 font-bold">{order.phone}</p>
+                <p className="text-slate-500 text-xs">{order.email}</p>
               </div>
               <div className="space-y-1">
                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1 mb-2">Giao đến</h4>
                 <p className="text-slate-600 italic leading-relaxed">{order.address}</p>
               </div>
             </div>
+
+            {/* Ghi chú từ khách hàng */}
+            {order.note && (
+              <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl flex gap-3 items-start animate-in slide-in-from-top-1">
+                <span className="text-xl">💬</span>
+                <div>
+                  <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Ghi chú từ khách hàng</h4>
+                  <p className="text-sm text-slate-700 italic font-medium">"{order.note}"</p>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-4">
               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1">Sản phẩm</h4>
@@ -81,7 +96,14 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onUpdateStat
                     <img src={item.image} alt={item.name} className="w-14 h-14 rounded-xl object-cover shadow-sm border" />
                     <div className="flex-1">
                       <p className="font-bold text-slate-900 text-sm">{item.name}</p>
-                      <p className="text-[10px] text-slate-400 font-black uppercase tracking-tighter">{item.color} • Size {item.size}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 uppercase tracking-tight">
+                          Mã SP: {item.id}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-tighter">
+                          {item.color} • Size {item.size}
+                        </span>
+                      </div>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-black text-indigo-600">{formatCurrency(item.price)}</p>
@@ -92,9 +114,26 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onUpdateStat
               </div>
             </div>
 
-            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center">
-                <span className="text-sm font-bold text-slate-500">Tổng thanh toán:</span>
-                <span className="text-xl font-black text-indigo-600">{formatCurrency(order.totalAmount)}</span>
+            {/* Tổng kết thanh toán - HIỂN THỊ CHI TIẾT GIẢM GIÁ */}
+            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+                <div className="flex justify-between items-center text-sm">
+                   <span className="font-bold text-slate-500 italic">Tạm tính:</span>
+                   <span className="font-bold text-slate-800">{formatCurrency(subtotal)}</span>
+                </div>
+                
+                {order.discount && order.discount > 0 && (
+                  <div className="flex justify-between items-center text-sm text-rose-600 animate-in fade-in slide-in-from-right-2">
+                     <span className="font-black flex items-center gap-2 italic uppercase text-[10px]">
+                        🏷️ Giảm giá {order.discountCode ? `(${order.discountCode})` : ''}:
+                     </span>
+                     <span className="font-black">-{formatCurrency(order.discount)}</span>
+                  </div>
+                )}
+
+                <div className="pt-3 mt-1 border-t border-slate-200 flex justify-between items-center">
+                   <span className="text-sm font-black text-slate-900 uppercase tracking-tighter">Tổng thanh toán:</span>
+                   <span className="text-2xl font-black text-indigo-600 drop-shadow-sm">{formatCurrency(order.totalAmount)}</span>
+                </div>
             </div>
           </div>
 
@@ -117,7 +156,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onUpdateStat
                 <textarea 
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="Lý do đổi trả..."
+                  placeholder="Lý do đổi trả hoặc ghi chú xử lý..."
                   className="w-full p-3 bg-white border border-rose-200 rounded-xl text-xs min-h-[80px] mb-4 outline-none"
                 />
               )}
@@ -134,13 +173,28 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onUpdateStat
 
             <div className="space-y-4">
               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1">Lịch sử xử lý</h4>
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {order.statusHistory?.slice().reverse().map((log, index) => (
                   <div key={index} className="flex gap-3 relative">
-                    <div className="w-2 h-2 rounded-full bg-indigo-400 mt-1 shrink-0 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
-                    <div className="text-xs">
-                      <p className="font-black text-slate-700 uppercase tracking-tight">{log.status}</p>
-                      <p className="text-[10px] text-slate-400">{new Date(log.updatedAt).toLocaleString('vi-VN')}</p>
+                    <div className="w-2 h-2 rounded-full bg-indigo-400 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
+                    <div className="text-xs flex-1">
+                      <div className="flex justify-between items-start">
+                        <p className="font-black text-slate-700 uppercase tracking-tight">{log.status}</p>
+                        <span className="text-[9px] text-slate-400 font-bold">{log.updatedBy}</span>
+                      </div>
+                      <p className="text-[10px] text-slate-400 mb-1">{new Date(log.updatedAt).toLocaleString('vi-VN')}</p>
+                      
+                      {/* GHI CHÚ NHÂN VIÊN - TÔ ĐẬM NỔI BẬT */}
+                      {log.note && (
+                        <div className="mt-2 p-3 bg-indigo-50/50 border-l-4 border-indigo-400 rounded-r-xl shadow-sm animate-in slide-in-from-left-1">
+                          <div className="flex items-center gap-1.5 mb-1">
+                             <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">Nội dung xử lý:</span>
+                          </div>
+                          <p className="text-[12px] text-slate-900 font-bold leading-relaxed">
+                             {log.note}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
