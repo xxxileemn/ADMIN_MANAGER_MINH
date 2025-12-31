@@ -1,0 +1,7 @@
+{
+  "name": "FashionAdmin Pro",
+  "description": "Hệ thống quản lý đơn hàng thông minh dành cho các cửa hàng thời trang, tích hợp AI phân tích xu hướng và báo cáo kinh doanh.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
