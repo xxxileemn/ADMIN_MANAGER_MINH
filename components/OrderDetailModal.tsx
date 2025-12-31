@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Order, OrderStatus } from '../types';
 
 interface OrderDetailModalProps {
@@ -41,8 +41,9 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onUpdateStat
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
-  // Tính giá tạm tính trước giảm giá
-  const subtotal = order.totalAmount + (order.discount || 0);
+  const calculatedSubtotal = useMemo(() => {
+    return order.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  }, [order.items]);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-md">
@@ -77,13 +78,13 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onUpdateStat
               </div>
             </div>
 
-            {/* Ghi chú từ khách hàng */}
+            {/* Ghi chú khách hàng - ĐÃ KHÔI PHỤC VÀ LÀM NỔI BẬT */}
             {order.note && (
-              <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl flex gap-3 items-start animate-in slide-in-from-top-1">
+              <div className="p-4 bg-amber-50 border-l-4 border-amber-400 rounded-r-2xl flex gap-3 items-start animate-in slide-in-from-top-1 shadow-sm">
                 <span className="text-xl">💬</span>
                 <div>
-                  <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Ghi chú từ khách hàng</h4>
-                  <p className="text-sm text-slate-700 italic font-medium">"{order.note}"</p>
+                  <h4 className="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-1">Ghi chú từ khách hàng</h4>
+                  <p className="text-sm text-slate-700 italic font-bold">"{order.note}"</p>
                 </div>
               </div>
             )}
@@ -114,31 +115,48 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onUpdateStat
               </div>
             </div>
 
-            {/* Tổng kết thanh toán - HIỂN THỊ CHI TIẾT GIẢM GIÁ */}
-            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
-                <div className="flex justify-between items-center text-sm">
-                   <span className="font-bold text-slate-500 italic">Tạm tính:</span>
-                   <span className="font-bold text-slate-800">{formatCurrency(subtotal)}</span>
+            {/* Thanh toán Summary - ĐÃ BỎ Ô MÀU ĐEN, DÙNG TÔNG SÁNG SANG TRỌNG */}
+            <div className="p-6 bg-white rounded-3xl border-2 border-indigo-50 space-y-4 shadow-[0_10px_30px_-10px_rgba(79,70,229,0.1)]">
+                <div className="flex justify-between items-center text-sm text-slate-500 font-bold">
+                   <span className="uppercase tracking-widest text-[10px]">Tạm tính hàng hóa:</span>
+                   <span className="text-slate-800">{formatCurrency(calculatedSubtotal)}</span>
                 </div>
                 
-                {order.discount && order.discount > 0 && (
-                  <div className="flex justify-between items-center text-sm text-rose-600 animate-in fade-in slide-in-from-right-2">
-                     <span className="font-black flex items-center gap-2 italic uppercase text-[10px]">
-                        🏷️ Giảm giá {order.discountCode ? `(${order.discountCode})` : ''}:
-                     </span>
-                     <span className="font-black">-{formatCurrency(order.discount)}</span>
+                {order.discountCode && (
+                  <div className="flex justify-between items-center animate-in slide-in-from-left-2 p-3 bg-indigo-50/30 rounded-2xl border border-indigo-100/50">
+                    <div className="flex items-center gap-2">
+                       <span className="text-lg">🎟️</span>
+                       <div>
+                          <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-none">Voucher áp dụng</p>
+                          <p className="text-sm font-black text-indigo-700">{order.discountCode}</p>
+                       </div>
+                    </div>
+                    <div className="text-right">
+                       <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest leading-none">Số tiền giảm</p>
+                       <p className="text-sm font-black text-rose-600">-{formatCurrency(order.discount || 0)}</p>
+                    </div>
                   </div>
                 )}
 
-                <div className="pt-3 mt-1 border-t border-slate-200 flex justify-between items-center">
-                   <span className="text-sm font-black text-slate-900 uppercase tracking-tighter">Tổng thanh toán:</span>
-                   <span className="text-2xl font-black text-indigo-600 drop-shadow-sm">{formatCurrency(order.totalAmount)}</span>
+                {!order.discountCode && order.discount && order.discount > 0 ? (
+                  <div className="flex justify-between items-center text-sm text-rose-600 border-t border-indigo-50 pt-3">
+                     <span className="font-black uppercase tracking-widest text-[10px]">Chiết khấu trực tiếp:</span>
+                     <span className="font-black">-{formatCurrency(order.discount)}</span>
+                  </div>
+                ) : null}
+
+                <div className="pt-4 border-t border-indigo-100 flex justify-between items-center">
+                   <div>
+                      <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block leading-none mb-1">Thực thu thanh toán</span>
+                      <span className="text-[10px] text-slate-400 font-bold italic">Giá đã bao gồm VAT và Khuyến mãi</span>
+                   </div>
+                   <span className="text-3xl font-black text-indigo-600 drop-shadow-sm">{formatCurrency(order.totalAmount)}</span>
                 </div>
             </div>
           </div>
 
           <div className="space-y-6">
-            <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100 shadow-sm">
+            <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 shadow-sm">
               <h4 className="text-[10px] font-black text-indigo-700 uppercase tracking-widest mb-3">Cập nhật trạng thái</h4>
               <select 
                 value={selectedStatus}
@@ -147,7 +165,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onUpdateStat
                     setSelectedStatus(status);
                     setShowReasonInput(status === OrderStatus.EXCHANGE_RETURN);
                 }}
-                className="w-full px-4 py-2 bg-white border border-indigo-200 rounded-xl text-xs font-bold mb-4 outline-none shadow-sm"
+                className="w-full px-4 py-2 bg-white border border-indigo-200 rounded-xl text-xs font-bold mb-4 outline-none shadow-sm focus:ring-2 focus:ring-indigo-500/20"
               >
                 {Object.values(OrderStatus).map(status => <option key={status} value={status}>{status}</option>)}
               </select>
@@ -163,15 +181,14 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onUpdateStat
 
               <button 
                 onClick={handleConfirmUpdate}
-                className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-black shadow-lg shadow-indigo-200 active:scale-95 transition-all mb-3"
+                className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-black shadow-lg shadow-indigo-200 active:scale-95 transition-all mb-3 hover:bg-indigo-700"
               >
                 Cập nhật ngay
               </button>
-
-              <button onClick={() => onPrint(order)} className="w-full py-2 bg-white text-indigo-600 border border-indigo-200 rounded-xl text-xs font-bold active:scale-95">In hóa đơn</button>
+              <button onClick={() => onPrint(order)} className="w-full py-2 bg-white text-indigo-600 border border-indigo-200 rounded-xl text-xs font-bold active:scale-95 hover:bg-indigo-50">In hóa đơn</button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 pb-10 sm:pb-0">
               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-1">Lịch sử xử lý</h4>
               <div className="space-y-5">
                 {order.statusHistory?.slice().reverse().map((log, index) => (
@@ -183,16 +200,9 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onUpdateStat
                         <span className="text-[9px] text-slate-400 font-bold">{log.updatedBy}</span>
                       </div>
                       <p className="text-[10px] text-slate-400 mb-1">{new Date(log.updatedAt).toLocaleString('vi-VN')}</p>
-                      
-                      {/* GHI CHÚ NHÂN VIÊN - TÔ ĐẬM NỔI BẬT */}
                       {log.note && (
                         <div className="mt-2 p-3 bg-indigo-50/50 border-l-4 border-indigo-400 rounded-r-xl shadow-sm animate-in slide-in-from-left-1">
-                          <div className="flex items-center gap-1.5 mb-1">
-                             <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest">Nội dung xử lý:</span>
-                          </div>
-                          <p className="text-[12px] text-slate-900 font-bold leading-relaxed">
-                             {log.note}
-                          </p>
+                          <p className="text-[12px] text-slate-900 font-bold leading-relaxed">{log.note}</p>
                         </div>
                       )}
                     </div>

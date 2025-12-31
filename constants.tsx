@@ -56,7 +56,6 @@ const generateMockInventory = (): InventoryItem[] => {
   });
 };
 
-// Khởi tạo MOCK_INVENTORY trước để Đơn hàng có thể tham chiếu
 export const MOCK_INVENTORY: InventoryItem[] = generateMockInventory();
 
 // 3. Tạo danh sách Đơn hàng (lấy sản phẩm từ Kho hàng)
@@ -80,7 +79,6 @@ const generateMockOrders = (): Order[] => {
     const day = Math.floor(Math.random() * 28) + 1;
     const createdAt = `2024-0${month}-${day.toString().padStart(2, '0')}T10:00:00Z`;
 
-    // Chọn ngẫu nhiên 1-3 sản phẩm từ Kho hàng đã tạo
     const numItems = Math.floor(Math.random() * 2) + 1;
     const items = Array.from({ length: numItems }).map(() => {
       const invIdx = Math.floor(Math.random() * MOCK_INVENTORY.length);
@@ -88,7 +86,7 @@ const generateMockOrders = (): Order[] => {
       const template = PRODUCT_TEMPLATES[invIdx];
 
       return {
-        id: invItem.id, // Khớp với ID trong kho
+        id: invItem.id,
         name: invItem.name,
         price: invItem.sellingPrice,
         quantity: Math.floor(Math.random() * 2) + 1,
@@ -99,7 +97,7 @@ const generateMockOrders = (): Order[] => {
     });
 
     const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    const discount = Math.random() > 0.7 ? 50000 : 0;
+    const discount = Math.random() > 0.6 ? 50000 : 0; // Tăng tỷ lệ đơn có giảm giá
     const totalAmount = subtotal - discount;
 
     return {
@@ -112,7 +110,7 @@ const generateMockOrders = (): Order[] => {
       totalAmount, discount, 
       discountCode: discount > 0 ? discountCodes[Math.floor(Math.random() * discountCodes.length)] : undefined,
       createdAt, items,
-      note: Math.random() > 0.9 ? 'Giao giờ hành chính' : undefined
+      note: Math.random() > 0.5 ? 'Giao giờ hành chính, gọi trước khi giao.' : undefined // Tăng tỷ lệ ghi chú để test
     };
   });
 };
